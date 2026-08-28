@@ -1,0 +1,11 @@
+station,latitude_deg,longitude_deg,altitude_m,climate_type,terrain_type,land_surface_type
+Nanshan,43.47,87.18,2080,continental_arid,mountain,sparse_vegetation
+Muztagh Ata,38.28,75.1,4526,cold_arid_plateau,high_mountain,rock_snow_sparse
+Ali,32.32,80.03,5100,cold_arid_plateau,plateau_mountain,bare_soil_sparse
+Yangbajing,30.1,90.52,4300,plateau_monsoon,plateau_valley,alpine_grassland
+Lenghu,38.61,93.9,4200,cold_arid_plateau,mountain,bare_rock_desert
+Miyun,40.56,116.97,300,temperate_monsoon,hills_plain,mixed_vegetation
+Kashgar,39.47,75.99,1290,continental_arid,basin_oasis,oasis_desert_mosaic
+Sanya,18.25,109.51,20,tropical_monsoon,coastal_plain,coastal_urban_vegetation
+Lijiang,26.7,100.03,3200,subtropical_highland,mountain,forest_grassland
+Mohe,53.48,122.37,430,cold_temperate_continental,rolling_hills,boreal_forest

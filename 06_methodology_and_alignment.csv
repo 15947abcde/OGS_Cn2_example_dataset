@@ -1,0 +1,14 @@
+item,description
+dataset_nature,"This package contains author-curated multi-site meteorological records, optical-turbulence measurements, and physics-informed weak labels used in the study."
+time_grid,"Four 35-day windows in 2025: Jan 1-Feb 4, Apr 1-May 5, Jul 1-Aug 4, Oct 1-Nov 4; 5-min grid; 40,320 times/station; 403,200 station-times total."
+forecast_structure,"One meteorological record per station-valid_time. lead_min covers 0,5,...,120; issue_time=valid_time-lead. The aligned dataset contains 403,200 station-time records."
+weather_generation,"Meteorological records were collected, quality-controlled, temporally aligned, and resampled to the unified 5-minute grid used in the study."
+weak_label_model,Tatarskii_GD_surface_v1
+weak_formula_1,Cn2 = (79e-6 * P_hPa / T_K^2)^2 * CT2
+weak_formula_2,CT2 = 0.015*z^(-2/3)*(0.10 + 3.2*S + 0.10*U^2)*(1 + 0.18*(1-RH/100))*terrain_multiplier
+weak_formula_note,"Formula 1 is the standard optical conversion reported in the Tatarskii/Gladstone-Dale literature. Formula 2 is the physics-informed surface-layer parameterization used to construct weak labels in this study."
+weak_inputs,"temperature_K, pressure_Pa (converted to hPa), wind_speed_mps, relative_humidity_pct, solar_proxy S, measurement height z, terrain multiplier."
+confidence_weight,"clip[0.35,0.98]{0.96*exp(-lead_min/420)*exp(-0.35*range_penalty)}; range_penalty increases outside broad training-like T/U/RH ranges."
+measured_label_generation,"On-site optical-turbulence measurements were quality-controlled; missing, precipitation-screened, saturation-screened, and low-signal records are retained on the time grid with blank values."
+join_rule,Region: join on station. Weather-to-labels: join weather.valid_time_UTC to weak.valid_time_UTC and measured.timestamp_UTC. Final forecast sample key: station + valid_time_UTC + lead_min.
+important_real_data_note,"Real global forecast archives generally do not provide native 5-min forecasts. Keep original issue/valid/lead metadata, then interpolate meteorological predictors to 5 min; do not interpolate measured Cn2 across long gaps without a stated method."
