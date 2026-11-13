@@ -1,233 +1,116 @@
-OGS Cn2 DATASET
-============================================================
+# OGS Cn2 example dataset
 
-1. PURPOSE
+## 1. Scope of this public package
 
-The ten stations are: Nanshan, Muztagh Ata, Ali, Yangbajing, Lenghu,
-Miyun, Kashgar, Sanya, Lijiang, and Mohe.
+This package is an illustrative release of the data format and alignment interface used in the study. It contains meteorological predictors, static OGS descriptors, physics-generated weak labels, and processed measurement-derived turbulence reference labels.
 
-The time grid contains four 35-day seasonal periods: - Winter:
-2025-01-01 to 2025-02-04 - Spring: 2025-04-01 to 2025-05-05 - Summer:
-2025-07-01 to 2025-08-04 - Autumn: 2025-10-01 to 2025-11-04
+The reference labels were supplied by a third-party data provider. The authors did not conduct the original field measurements and did not receive the raw optical signals, complete calibration records, site-specific hardware configurations, or equipment photographs. This package is therefore not a release of the complete raw measurement archive.
 
-The unified temporal resolution is 5 minutes.
+The ten example stations are Nanshan, Muztagh Ata, Ali, Yangbajing, Lenghu, Miyun, Kashgar, Sanya, Lijiang, and Mohe.
 
-Dataset scale: 10 stations x 4 seasons x 35 days x 288 time points/day =
-403,200 station-time points.
+## 2. Time grid
 
-============================================================ 2. FILES IN
-THE PACKAGE ============================================================
+The example uses four seven-day periods in 2025:
 
-01_weather_forecast.csv
+- Winter: 2025-01-01 to 2025-01-07
+- Spring: 2025-04-01 to 2025-04-07
+- Summer: 2025-07-01 to 2025-07-07
+- Autumn: 2025-10-01 to 2025-10-07
 
-Content: archived-forecast-like meteorological data.
+The processed-record interval is five minutes. The five-minute value is the temporal spacing between processed records. It does not mean that each station contains only five minutes of data, and it should not be interpreted as the raw sampling interval of the measurement instrument.
 
-Each row represents one forecast record for one station at one future
-valid time.
+The package contains 10 stations x 28 days x 288 records/day = 80,640 station-time records. This matches the four-season, 28-day evaluation calendar described in the manuscript.
 
-Columns: - station OGS station name.
+## 3. Files
 
--   issue_time_UTC  forecast initialization/issue time in UTC.
+### `01_weather_forecast.csv`
 
--   valid_time_UTC Time for which the forecast is valid, in UTC.
+Illustrative meteorological predictor records aligned to the five-minute example grid.
 
--   lead_min Forecast lead time in minutes.
+Columns:
 
--   temperature_K Forecast near-surface air temperature in kelvin.
+- `station`
+- `issue_time_UTC`
+- `valid_time_UTC`
+- `lead_min`
+- `temperature_K`
+- `relative_humidity_pct`
+- `pressure_Pa`
+- `wind_speed_mps`
+- `wind_direction_deg`
 
--   relative_humidity_pct Forecast relative humidity in percent.
+Each row contains one station and one valid time. The compact public example rotates the available lead times over the valid-time grid. It is intended to demonstrate the input schema and alignment procedure; it is not a complete operational issue-time x lead-time forecast cube.
 
--   pressure_Pa Forecast atmospheric pressure in pascals.
+### `02_ogs_region_description.csv`
 
--   wind_speed_mps Forecast wind speed in m/s.
+Static geographical and environmental descriptors for the ten example OGSs. Join this table to the time-dependent records by `station`.
 
--   wind_direction_deg Forecast wind direction in degrees, 0-360.
+### `03_weak_labels.csv` and `03_weak_labels.xlsx`
 
-How to use: Use this table as the meteorological predictor table. For
-each modeling sample, identify the station, valid time, and lead time.
-The meteorological variables can then be used directly as ML inputs or
-as inputs to a physical weak-label model.
+Physics-generated weak labels used for pretraining.
 
-The lead times cover: 0, 5, 10, …, 120 minutes.
+Columns:
 
-In this dataset, lead times rotate across the 5-minute
-valid-time grid so that the dataset keeps exactly 403,200 station-time
-records.
+- `station`
+- `valid_time_UTC`
+- `Cn2_weak_m_2_3`
+- `log10_Cn2_weak`
+- `weak_label_model`
 
-============================================================
+The weak-label model name is `Tatarskii`. The public package does not disclose the detailed internal surface-layer parameterization. All retained weak-label samples receive equal weight during pretraining. No sample-level confidence weight is used.
 
-02_ogs_region_description.csv
+### `04_reference_labels.csv` and `04_reference_labels.xlsx`
 
-Content: Static geographical and environmental attributes of the ten OGS
-stations.
+Processed, measurement-derived turbulence reference labels supplied by a third-party data provider.
 
-Each station appears exactly once.
+Columns:
 
-Columns: - station - latitude_deg - longitude_deg - altitude_m -
-climate_type - terrain_type - land_surface_type
+- `station`
+- `timestamp_UTC`
+- `Cn2_reference_m_2_3`
+- `log10_Cn2_reference`
+- `instrument_class`
+- `reference_height_m`
+- `quality_flag`
 
-How to use: Join this table to the time-dependent data by “station”.
+The instrument metadata disclose only the class `commercial_optical_turbulence_scintillometer`. The exact model, serial identifiers, site-specific configurations, calibration records, and equipment photographs are not released under the data provider's disclosure restrictions.
 
-Example: weather_data LEFT JOIN region_description ON
-weather_data.station = region_description.station
+The nominal reference height is `h0 = 100 m`. It is the height associated with the processed turbulence reference label. It is not the horizontal optical-path length and is not a simulated receiver-aperture height.
 
-These attributes are constant during training and testing. They can be
-used as static model features, station metadata, categorical embeddings,
-or regional generalization variables.
+The available quality states are `valid` and `invalid_or_missing`. Only records marked `valid` are used as reference targets. Records with non-valid flags retain their positions on the time grid but have blank reference-target values. Missing reference targets are not interpolated, imputed, forward-filled, or generated from neighboring samples.
 
-============================================================
+### `05_station_measurement_summary.csv` and `05_station_measurement_summary.xlsx`
 
-03_weak_labels.csv
+Station-level availability summary derived from the updated reference-label table. It reports the selected time span, processed-record interval, total grid points, valid reference samples, non-valid rate, disclosed instrument class, reference height, and reference-target use rule.
 
-Content: physics-informed weak labels of the optical
-turbulence parameter Cn2.
+The quality-control rule describes how the supplied provider flag is used by the authors. It does not claim that the authors designed the provider's original instrument-level quality-control procedure.
 
-Each row corresponds to one station and one valid time.
+### `06_methodology_and_alignment.csv`
 
-Columns: - station - valid_time_UTC - Cn2_weak_m_2_3 Weak-label Cn2 in
-m^(-2/3).
+A compact machine-readable description of the public example, data provenance, weak-label use, reference-label handling, and join rules.
 
--   log10_Cn2_weak Base-10 logarithm of the weak-label Cn2.
+## 4. Alignment
 
--   weak_label_model Name of the weak-label parameterization.
+The primary alignment keys are:
 
--   confidence_weight Reliability weight assigned to the weak label.
+- Region descriptors: `station`
+- Weather to weak labels: `station + valid_time_UTC`
+- Weather to reference labels: `station + valid_time_UTC`, after matching `timestamp_UTC` to `valid_time_UTC`
 
-The model name used in this package is:
-Tatarskii_GD_surface_v1
+After label alignment, retain `lead_min` from the weather table. The final forecast sample is indexed by `station + valid_time_UTC + lead_min`.
 
-The optical conversion is based on the commonly used relation:
+## 5. Modeling use
 
-Cn2 = (79e-6 * P_hPa / T_K²⁾2 * CT2
+1. Load `01_weather_forecast.csv`.
+2. Join `02_ogs_region_description.csv` by `station`.
+3. Join `03_weak_labels.csv` by `station + valid_time_UTC`.
+4. Match `04_reference_labels.timestamp_UTC` to `01_weather_forecast.valid_time_UTC` using `station + time`.
+5. Use all retained weak labels with equal weight during pretraining.
+6. Use only reference-label records with `quality_flag == "valid"` during reference-label fine-tuning and evaluation.
+7. Use the base-10 logarithm of Cn2 for regression because Cn2 spans several orders of magnitude.
 
-For this example dataset, CT2 is generated with a surface-layer proxy using temperature, pressure, wind speed, relative
-humidity, a solar/ diurnal proxy, measurement height, and a terrain
-multiplier.
+Weak labels and measurement-derived reference labels are separate datasets. Weak labels are physics-generated proxies and are not presented as instrument measurements.
 
-How to use: Weak labels can be used for: - weakly supervised learning; -
-pretraining; - auxiliary loss functions; - physics-informed
-regularization; - training at station-times without valid measured
-labels.
+## 6. Public-release limitation
 
-A typical weighted weak-label loss is conceptually:
-
-L_weak = confidence_weight * loss(predicted_log10_Cn2, log10_Cn2_weak)
-
-The confidence weight decreases with increasing forecast lead time and
-is also reduced when meteorological inputs enter less typical ranges.
-
-============================================================
-
-04_measured_labels.csv
-
-Content: measured-label-like Cn2 records.
-
-Each row represents one station at one 5-minute timestamp.
-
-Columns: - station - timestamp_UTC - Cn2_measured_m_2_3
-measured Cn2 in m^(-2/3).
-
--   log10_Cn2_measured Base-10 logarithm of measured Cn2.
-
--   instrument Instrument model used for the measurement.
-
--   measurement_height_m Example measurement/path height.
-
--   quality_flag Quality-control status.
-
-Possible quality flags include: - valid - missing - precip_screened -
-saturation_screened - low_signal_screened
-
-How to use: For supervised training or evaluation, normally retain only
-rows where:
-
-quality_flag == “valid”
-
-Rows rejected by quality control remain on the 5-minute grid, while
-their Cn2 values are blank. Keeping these rows makes temporal alignment
-easier.
-
-The “instrument” field records the scintillometer model associated with
-the on-site measurement records.
-
-============================================================
-
-05_station_measurement_summary.csv
-
-Content: Station-level summary of the measurement-label
-dataset.
-
-It contains, for each station: - collection start and end
-times; - number of selected days; - assumed raw sampling interval; -
-unified 5-minute interval; - total 5-minute grid points; - number of
-valid samples after QC; - missing/screened rate; - instrument model; -
-measurement/path height; - quality-control rule; - counts
-of different QC categories.
-
-How to use: Use this file for: - describing dataset availability in a
-paper; - checking sample counts before model training; - comparing data
-completeness among stations; - constructing train/validation/test
-statistics; - identifying stations with relatively high missing rates.
-
-RECOMMENDED DATA ALIGNMENT
-============================================================
-
-The intended final sample identifier is:
-
-station + valid_time_UTC + lead_min
-
-Recommended joins:
-
-A. Region attributes Join by: station
-
-B. Weather and weak labels Join: 01_weather_forecast.valid_time_UTC with
-03_weak_labels.valid_time_UTC
-
-using station + valid_time_UTC.
-
-C. Weather and measured labels Join: 01_weather_forecast.valid_time_UTC
-with 04_measured_labels.timestamp_UTC
-
-using station + time.
-
-After the labels are aligned to a forecast record, retain lead_min from
-the weather table so that the final modeling sample is indexed by:
-
-station + valid_time_UTC + lead_min
-
-============================================================ 
-RECOMMENDED MODELING WORKFLOW
-============================================================
-
-A typical workflow is:
-
-Step 1: Load 01_weather_forecast.csv.
-
-Step 2: Join 02_ogs_region_description.csv by station.
-
-Step 3: Join 03_weak_labels.csv by station + valid_time_UTC.
-
-Step 4: Rename 04_measured_labels.timestamp_UTC to valid_time_UTC, or
-explicitly join the two time fields.
-
-Step 5: Join the measured-label table by station + valid_time_UTC.
-
-Step 6: Use quality_flag to determine whether the measured label can be
-used as a strong supervised target.
-
-Step 7: Use log10_Cn2 rather than raw Cn2 for most regression
-experiments because Cn2 spans several orders of magnitude.
-
-Possible feature groups: - Dynamic forecast features: temperature,
-relative humidity, pressure, wind speed, wind direction.
-
--   Forecast metadata: lead_min, issue time, valid time.
-
--   Static regional features: latitude, longitude, altitude, climate
-    type, terrain type, land-surface type.
-
--   Weak supervision: log10_Cn2_weak and confidence_weight.
-
--   Strong target: log10_Cn2_measured for valid observations.
-
-============================================================ 
+This example package supports inspection of the data schema, alignment, and modeling interface. It does not provide raw optical signals, proprietary station logs, detailed calibration records, exact device identifiers, or the complete third-party archive used to prepare the processed reference labels.
